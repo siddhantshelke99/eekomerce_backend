@@ -11,6 +11,7 @@ enum Role {
   CUSTOMER
   VENDOR
   SUPER_ADMIN
+  CORPORATE_BUYER
 }
 
 enum ReservationStatus {
@@ -25,6 +26,13 @@ enum RequestStatus {
   OPEN
   FULFILLED
   CLOSED
+}
+
+enum AuctionStatus {
+  DRAFT
+  ACTIVE
+  CLOSED
+  CANCELLED
 }
 
 enum FulfillmentType {
@@ -53,6 +61,8 @@ model User {
   name                String
   role                Role      @default(CUSTOMER)
   googleId            String?   @unique
+  companyName         String?
+  gstin               String?
   failedLoginAttempts Int       @default(0)
   lockoutUntil        DateTime?
   createdAt           DateTime  @default(now())
@@ -65,6 +75,8 @@ model User {
   orders              Order[]
   permissions         UserPermission[]
   auditLogs           AuditLog[]
+  corporateAuctions   CorporateAuction[]
+  auctionBids         AuctionBid[]
 
   @@map("users")
 }
@@ -123,6 +135,51 @@ model AuditLog {
   @@map("audit_logs")
 }
 
+model CorporateAuction {
+  id           String        @id @default(uuid())
+  buyerId      String
+  categoryId   String
+  title        String
+  description  String?
+  imageUrl     String?
+  referenceUrl String?
+  quantity     Int
+  targetBudget Float?
+  latitude     Float         @default(12.9784)
+  longitude    Float         @default(77.6408)
+  radiusKm     Float         @default(25.0)
+  status       AuctionStatus @default(ACTIVE)
+  expiresAt    DateTime
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  buyer        User          @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+  category     Category      @relation(fields: [categoryId], references: [id])
+  bids         AuctionBid[]
+
+  @@map("corporate_auctions")
+}
+
+model AuctionBid {
+  id            String           @id @default(uuid())
+  auctionId     String
+  vendorId      String
+  storeId       String
+  unitPrice     Float
+  lotTotalPrice Float
+  deliveryDays  Int              @default(2)
+  notes         String?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  auction       CorporateAuction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  vendor        User             @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  store         Store            @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@unique([auctionId, storeId])
+  @@map("auction_bids")
+}
+
 model Store {
   id               String   @id @default(uuid())
   ownerId          String
@@ -148,6 +205,7 @@ model Store {
   reservations     Reservation[]
   vendorQuotes     VendorQuote[]
   orders           Order[]
+  auctionBids      AuctionBid[]
 
   @@map("stores")
 }
@@ -161,8 +219,9 @@ model Category {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  products        Product[]
-  productRequests ProductRequest[]
+  products          Product[]
+  productRequests   ProductRequest[]
+  corporateAuctions CorporateAuction[]
 
   @@map("categories")
 }

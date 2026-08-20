@@ -9,7 +9,7 @@ export class NotificationService {
     const job = await otpQueue.add('SEND_OTP_SMS', {
       payload: {
         toPhoneNumber,
-        message: `Your Project Local verification code is ${code}. Valid for 10 minutes.`,
+        message: `Your NearrBuy verification code is ${code}. Valid for 10 minutes.`,
       },
     });
 

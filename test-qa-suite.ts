@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 
 async function runQATestSuite() {
   console.log('🧪 ========================================================');
-  console.log('🧪 PROJECT LOCAL — SENIOR QA AUTOMATION TEST SUITE');
+  console.log('🧪 NEARRBUY — SENIOR QA AUTOMATION TEST SUITE');
   console.log('🧪 ========================================================\n');
 
   let passedTests = 0;

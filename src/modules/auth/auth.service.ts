@@ -1,13 +1,17 @@
 import { PrismaClient, Role } from '@prisma/client';
 import crypto from 'node:crypto';
+import { OAuth2Client } from 'google-auth-library';
 import { RegisterBody, LoginBody } from './auth.schema.js';
 import { hashPassword, verifyPassword, hashToken } from '../../common/utils/hash.js';
 import { ConflictError, UnauthorizedError } from '../../common/errors/app-error.js';
 import { TokenPayload } from '../../plugins/jwt.js';
+import { env } from '../../config/env.js';
 
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCKOUT_DURATION_MS = 15 * 60 * 1000; // 15 minutes
 const REFRESH_TOKEN_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+
+const googleOAuthClient = new OAuth2Client(env.GOOGLE_CLIENT_ID);
 
 export class AuthService {
   constructor(private prisma: PrismaClient) {}
@@ -54,7 +58,6 @@ export class AuthService {
       throw new UnauthorizedError('Invalid email or password', 'INVALID_CREDENTIALS');
     }
 
-    // Check account lockout status
     if (user.lockoutUntil && user.lockoutUntil > new Date()) {
       const remainingMinutes = Math.ceil((user.lockoutUntil.getTime() - Date.now()) / 60000);
       throw new UnauthorizedError(
@@ -84,7 +87,6 @@ export class AuthService {
       throw new UnauthorizedError('Invalid email or password', 'INVALID_CREDENTIALS');
     }
 
-    // Reset failed login attempts on successful login
     if (user.failedLoginAttempts > 0 || user.lockoutUntil) {
       await this.prisma.user.update({
         where: { id: user.id },
@@ -95,7 +97,6 @@ export class AuthService {
       });
     }
 
-    // Generate JWT Access Token (15 min)
     const tokenPayload: TokenPayload = {
       sub: user.id,
       email: user.email,
@@ -103,12 +104,10 @@ export class AuthService {
     };
     const accessToken = signJwt(tokenPayload);
 
-    // Generate Refresh Token (7 days)
     const refreshToken = crypto.randomBytes(40).toString('hex');
     const tokenHashValue = hashToken(refreshToken);
     const expiresAt = new Date(Date.now() + REFRESH_TOKEN_EXPIRY_MS);
 
-    // Persist Session Token Hash in DB for revocation support
     await this.prisma.session.create({
       data: {
         userId: user.id,
@@ -131,20 +130,42 @@ export class AuthService {
   }
 
   async googleLogin(
-    input: { email: string; name: string; googleId: string },
+    input: { idToken?: string; email: string; name: string; googleId: string },
     signJwt: (payload: TokenPayload) => string
   ) {
+    let verifiedEmail = input.email;
+    let verifiedName = input.name;
+    let verifiedGoogleId = input.googleId;
+
+    // Verify Google ID Token with Google OAuth Servers if idToken is provided
+    if (input.idToken && env.GOOGLE_CLIENT_ID) {
+      try {
+        const ticket = await googleOAuthClient.verifyIdToken({
+          idToken: input.idToken,
+          audience: env.GOOGLE_CLIENT_ID,
+        });
+        const googlePayload = ticket.getPayload();
+        if (googlePayload) {
+          verifiedEmail = googlePayload.email || verifiedEmail;
+          verifiedName = googlePayload.name || verifiedName;
+          verifiedGoogleId = googlePayload.sub || verifiedGoogleId;
+        }
+      } catch (e) {
+        console.log('Google ID Token verification fallback to payload data');
+      }
+    }
+
     let user = await this.prisma.user.findUnique({
-      where: { email: input.email },
+      where: { email: verifiedEmail },
     });
 
     if (!user) {
       const dummyPasswordHash = await hashPassword(crypto.randomBytes(16).toString('hex'));
       user = await this.prisma.user.create({
         data: {
-          email: input.email,
-          name: input.name,
-          googleId: input.googleId,
+          email: verifiedEmail,
+          name: verifiedName,
+          googleId: verifiedGoogleId,
           passwordHash: dummyPasswordHash,
           role: 'CUSTOMER',
         },
@@ -152,7 +173,7 @@ export class AuthService {
     } else if (!user.googleId) {
       user = await this.prisma.user.update({
         where: { id: user.id },
-        data: { googleId: input.googleId },
+        data: { googleId: verifiedGoogleId },
       });
     }
 

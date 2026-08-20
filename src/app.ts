@@ -18,6 +18,7 @@ import { reservationsRoutes } from './modules/reservations/reservations.routes.j
 import { requestsRoutes } from './modules/requests/requests.routes.js';
 import { ordersRoutes } from './modules/orders/orders.routes.js';
 import { analyticsRoutes } from './modules/analytics/analytics.routes.js';
+import { corporateRoutes } from './modules/corporate/corporate.routes.js';
 
 export async function buildApp() {
   const loggerConfig =
@@ -119,6 +120,7 @@ export async function buildApp() {
   await app.register(requestsRoutes, { prefix: '/api/v1/requests' });
   await app.register(ordersRoutes, { prefix: '/api/v1/orders' });
   await app.register(analyticsRoutes, { prefix: '/api/v1/analytics' });
+  await app.register(corporateRoutes, { prefix: '/api/v1/corporate' });
 
   return app;
 }

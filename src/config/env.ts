@@ -23,6 +23,9 @@ const envSchema = z.object({
   SMS_SENDER_ID: z.string().default('PROJLOC'),
   WHATSAPP_TOKEN: z.string().optional(),
   WHATSAPP_PHONE_NUMBER_ID: z.string().optional(),
+
+  // Google OAuth 2.0 Configuration
+  GOOGLE_CLIENT_ID: z.string().optional(),
 });
 
 const parseEnv = () => {

@@ -44,6 +44,7 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
           type: 'object',
           required: ['email', 'name', 'googleId'],
           properties: {
+            idToken: { type: 'string' },
             email: { type: 'string', format: 'email' },
             name: { type: 'string' },
             googleId: { type: 'string' },

@@ -33,7 +33,7 @@ export class EmailProvider {
   public async sendEmail(options: EmailOptions): Promise<boolean> {
     try {
       const info = await this.transporter.sendMail({
-        from: '"Project Local" <no-reply@projectlocal.com>',
+        from: '"NearrBuy" <no-reply@nearrbuy.com>',
         to: options.to,
         subject: options.subject,
         html: options.html,

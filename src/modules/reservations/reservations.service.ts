@@ -84,7 +84,7 @@ export class ReservationsService {
 
     void this.messagingService.sendSms({
       toPhoneNumber: inventoryItem.store.phone,
-      message: `[PROJECT LOCAL ALERT] New 2-hour reservation! Code: ${reservationCode} for ${inventoryItem.product.name} (Qty: ${qty}).`,
+      message: `[NEARRBUY ALERT] New 2-hour reservation! Code: ${reservationCode} for ${inventoryItem.product.name} (Qty: ${qty}).`,
     });
 
     return {

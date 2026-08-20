@@ -140,7 +140,7 @@ export class OrdersService {
 
     void this.messagingService.sendSms({
       toPhoneNumber: store.phone,
-      message: `[PROJECT LOCAL ORDER ALERT] New ${order.fulfillmentType} Order ${orderNumber}! Total: ₹${totalAmount}. Check Vendor Portal to prepare order.`,
+      message: `[NEARRBUY ORDER ALERT] New ${order.fulfillmentType} Order ${orderNumber}! Total: ₹${totalAmount}. Check Vendor Portal to prepare order.`,
     });
 
     return {

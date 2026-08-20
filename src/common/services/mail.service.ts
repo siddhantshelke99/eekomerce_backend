@@ -25,10 +25,10 @@ export class MailService {
       }
 
       await this.transporter.sendMail({
-        from: '"Project Local" <no-reply@projectlocal.com>',
+        from: '"NearrBuy" <no-reply@nearrbuy.com>',
         to,
-        subject: 'Welcome to Project Local — Search Online. Find It Nearby.',
-        html: `<div style="font-family: sans-serif; padding: 20px;"><h2>Welcome, ${name}!</h2></div>`,
+        subject: 'Welcome to NearrBuy — Shop Near, Save More',
+        html: `<div style="font-family: sans-serif; padding: 20px;"><h2>Welcome to NearrBuy, ${name}!</h2><p>Shop Near, Save More.</p></div>`,
       });
       return true;
     } catch (error) {
@@ -45,10 +45,10 @@ export class MailService {
       }
 
       await this.transporter.sendMail({
-        from: '"Project Local Security" <security@projectlocal.com>',
+        from: '"NearrBuy Security" <security@nearrbuy.com>',
         to,
-        subject: 'Your Project Local Verification Code',
-        html: `<div style="font-family: sans-serif; padding: 20px;"><h3>Code: ${otp}</h3></div>`,
+        subject: 'Your NearrBuy Verification Code',
+        html: `<div style="font-family: sans-serif; padding: 20px;"><h3>NearrBuy Code: ${otp}</h3></div>`,
       });
       return true;
     } catch (error) {
@@ -72,10 +72,10 @@ export class MailService {
       }
 
       await this.transporter.sendMail({
-        from: '"Project Local Reservations" <reservations@projectlocal.com>',
+        from: '"NearrBuy Reservations" <reservations@nearrbuy.com>',
         to,
-        subject: `Reservation Confirmed: ${details.reservationCode}`,
-        html: `<div style="font-family: sans-serif; padding: 20px;"><h2>Reservation: ${details.reservationCode}</h2></div>`,
+        subject: `NearrBuy Reservation Confirmed: ${details.reservationCode}`,
+        html: `<div style="font-family: sans-serif; padding: 20px;"><h2>NearrBuy Reservation: ${details.reservationCode}</h2></div>`,
       });
       return true;
     } catch (error) {
